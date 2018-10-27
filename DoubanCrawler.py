@@ -1,6 +1,5 @@
 import expanddouban
 import bs4
-# import codecs
 import csv
 import time
 
@@ -31,7 +30,7 @@ return a string corresponding to the URL of douban movie lists given category an
 base = "https://movie.douban.com/tag/#/?sort=S&range=9,10&tags=电影,"
 # list_locations = ["中国大陆","美国","香港","台湾","日本","韩国","英国","法国","德国","意大利","西班牙","印度","泰国","俄罗斯","伊朗"
 #                   ,"加拿大","澳大利亚","爱尔兰","瑞典","巴西","丹麦"]
-list_locations = ["中国大陆", "美国", "香港"]
+list_locations = ["中国大陆", "美国", "香港", "台湾", "日本", "韩国", "泰国", "英国"]
 
 
 # favorite_category = ["喜剧","爱情","动作"]
@@ -43,15 +42,16 @@ def get_movie_url(category, location):
     return url
 
 
-"""   类别 ，个数, """
-category_dict = {}
-"""  key : 地区， value :个数"""
-category_area_dict = {}
-
 """
 return a list of Movie objects with the given category and location.
 """
+
+
 def get_movies(category, location):
+    """ key: 类别 ，value: 个数 """
+    category_dict = {}
+    """  key : 地区， value :个数 """
+    category_area_dict = {}
     movie_list = []
     for loc in location:
         url = get_movie_url(category, loc)
@@ -61,8 +61,7 @@ def get_movies(category, location):
         content_div = soup.find(id="content").find(class_="list-wp").find_all("a", attrs={"class": "item"})
 
         """每个类别 每个地区 电影的数量 """
-        category_area_dict[loc]=len(content_div)
-
+        category_area_dict[loc] = 0
 
         for element in content_div:
             # print(element)
@@ -73,38 +72,41 @@ def get_movies(category, location):
             cover_link = element.find("img").get("src")
             m = Movie(name, rate, loc, category, info_link, cover_link)
             # print("movie:"+ m.print_data())
+            category_area_dict[loc] += 1
             movie_list.append(m)
 
         time.sleep(2)
 
-    """ 按数量 排序 地区-数量 的字典 """
-    sorted_dict_list = sorted(category_area_dict.items(), key=lambda x: x[1], reverse=True)
-    """ 取前三 """
-    sorted_dict_list = sorted_dict_list[0:3]
-    """ 每个类别 电影个数 """
+    """ 取此类别前三 按数量 排序 地区-数量 的字典 """
+    sorted_dict_list = sorted(category_area_dict.items(), key=lambda x: x[1], reverse=True)[:3]
+
+    # sorted_dict_list = sorted_dict_list[0:3]
+    """ 此类别 电影总数数 """
     total_len = len(movie_list)
     category_dict[category] = total_len
 
+    print("category {}`s film count :{}".format(category, total_len))
+    print("category {}`s most count first three:{}".format(category, sorted_dict_list))
+
     first_three = []
     percents = []
-
+    """ """
     for x in sorted_dict_list:
         first_three.append(x[0])
-        perc = round((x[1]/total_len)*100,2)
+        perc = round((x[1] / total_len) * 100, 2)
         percents.append(perc)
 
-
-
-    write_to_file(category,first_three,percents)
+    write_to_file(category, first_three, percents)
 
     return movie_list
 
 
 def write_one_category(movies):
-    with open("movies.csv", "w", encoding='utf-8-sig', newline='') as csv_file:
+    with open("movies.csv", "a", encoding='utf-8-sig') as csv_file:
         movies_writer = csv.writer(csv_file, delimiter=',', quotechar=' ', quoting=csv.QUOTE_MINIMAL)
+        # movies_writer = csv.writer(csv_file)
         for movie in movies:
-            movies_writer.writerow([movie])
+            movies_writer.writerow([movie.print_data()])
 
 
 def get_movie_and_write_file():
@@ -116,19 +118,17 @@ def get_movie_and_write_file():
     write_one_category(movie_list2)
     write_one_category(movie_list3)
 
+
 """ 在 category 中 排名前三的地区 """
-def write_to_file(category,first_three,percents):
-    with open('output.txt','a') as f:
-        f.write("在电影分类 {} 中， 数量排名前三的地区以及所占比例是：{}，{}%。"
+
+
+def write_to_file(category, first_three, percents):
+    with open('output.txt', 'a', newline='') as f:
+        f.write("评分9-10之间，在电影分类 {} 中， 数量排名前三的地区以及所占比例是：{}，{}%。"
                 "{}，{}%。"
-                "{}，{}%。 "
-                .format(category,first_three[0],percents[0],first_three[1],percents[1],first_three[2],percents[2]))
+                "{}，{}%。\n"
+                .format(category, first_three[0], percents[0], first_three[1], percents[1], first_three[2],
+                        percents[2]))
 
 
-
-# f = codecs.open("movies.csv","w","utf_8_sig")
-# writer = csv.writer(f)
-# writer.writerow(movie_list1)
-# writer.writerow(movie_list2)
-# writer.writerow(movie_list3)
-# f.close()
+get_movie_and_write_file()
