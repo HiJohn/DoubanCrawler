@@ -28,17 +28,14 @@ class Movie:
 return a string corresponding to the URL of douban movie lists given category and location.
 """
 base = "https://movie.douban.com/tag/#/?sort=S&range=9,10&tags=电影,"
-# list_locations = ["中国大陆","美国","香港","台湾","日本","韩国","英国","法国","德国","意大利","西班牙","印度","泰国","俄罗斯","伊朗"
-#                   ,"加拿大","澳大利亚","爱尔兰","瑞典","巴西","丹麦"]
-list_locations = ["中国大陆", "美国", "香港", "台湾", "日本", "韩国", "泰国", "英国"]
+list_locations = ["中国大陆","美国","香港","台湾","日本","韩国","英国","法国","德国","意大利","西班牙","印度","泰国","俄罗斯","伊朗"
+                  ,"加拿大","澳大利亚","爱尔兰","瑞典","巴西","丹麦"]
+# list_locations = ["中国大陆", "美国", "香港", "台湾", "日本", "韩国", "泰国", "英国"]
 
-
-# favorite_category = ["喜剧","爱情","动作"]
 
 
 def get_movie_url(category, location):
     url = base + category + "," + location
-    # print("url :"+url)
     return url
 
 
@@ -64,14 +61,11 @@ def get_movies(category, location):
         category_area_dict[loc] = 0
 
         for element in content_div:
-            # print(element)
             info_link = element.get("href")
-            # print("info link :"+info_link)
             name = element.find("span", attrs={"class": "title"}).contents[0]
             rate = element.find("span", attrs={"class": "rate"}).contents[0]
             cover_link = element.find("img").get("src")
             m = Movie(name, rate, loc, category, info_link, cover_link)
-            # print("movie:"+ m.print_data())
             category_area_dict[loc] += 1
             movie_list.append(m)
 
@@ -80,13 +74,10 @@ def get_movies(category, location):
     """ 取此类别前三 按数量 排序 地区-数量 的字典 """
     sorted_dict_list = sorted(category_area_dict.items(), key=lambda x: x[1], reverse=True)[:3]
 
-    # sorted_dict_list = sorted_dict_list[0:3]
     """ 此类别 电影总数数 """
     total_len = len(movie_list)
     category_dict[category] = total_len
 
-    print("category {}`s film count :{}".format(category, total_len))
-    print("category {}`s most count first three:{}".format(category, sorted_dict_list))
 
     first_three = []
     percents = []
@@ -102,9 +93,8 @@ def get_movies(category, location):
 
 
 def write_one_category(movies):
-    with open("movies.csv", "a", encoding='utf-8-sig') as csv_file:
+    with open("movies.csv", "a+", encoding='utf-8-sig') as csv_file:
         movies_writer = csv.writer(csv_file, delimiter=',', quotechar=' ', quoting=csv.QUOTE_MINIMAL)
-        # movies_writer = csv.writer(csv_file)
         for movie in movies:
             movies_writer.writerow([movie.print_data()])
 
@@ -118,8 +108,6 @@ def get_movie_and_write_file():
     write_one_category(movie_list2)
     write_one_category(movie_list3)
 
-
-""" 在 category 中 排名前三的地区 """
 
 
 def write_to_file(category, first_three, percents):
