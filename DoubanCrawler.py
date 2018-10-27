@@ -85,7 +85,17 @@ def get_movies(category, location):
     total_len = len(movie_list)
     category_dict[category] = total_len
 
-    # write_to_file(category,)
+    first_three = []
+    percents = []
+
+    for x in sorted_dict_list:
+        first_three.append(x[0])
+        perc = round((x[1]/total_len)*100,2)
+        percents.append(perc)
+
+
+
+    write_to_file(category,first_three,percents)
 
     return movie_list
 
@@ -109,9 +119,9 @@ def get_movie_and_write_file():
 """ 在 category 中 排名前三的地区 """
 def write_to_file(category,first_three,percents):
     with open('output.txt','a') as f:
-        f.write("在电影分类 {} 中， 数量排名前三的地区以及所占比例是：{}，{}。"
-                "{}，{}。"
-                "{}，{}。 "
+        f.write("在电影分类 {} 中， 数量排名前三的地区以及所占比例是：{}，{}%。"
+                "{}，{}%。"
+                "{}，{}%。 "
                 .format(category,first_three[0],percents[0],first_three[1],percents[1],first_three[2],percents[2]))
 
 
